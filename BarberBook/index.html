@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BarberBook - Find Your Perfect Barber</title>
+    <link rel="stylesheet" href="styles.css?v=2" />
+  </head>
+  <body>
+    <!-- Navigation -->
+    <nav class="navbar">
+      <div class="container">
+        <div class="nav-brand">
+          <h1>✂️ BarberBook 🇧🇷</h1>
+        </div>
+        <ul class="nav-menu">
+          <li><a href="index.html" class="active">Home</a></li>
+          <li><a href="#" id="dashboardLink">Dashboard</a></li>
+          <li><a href="login.html" id="authLink">Login</a></li>
+        </ul>
+      </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+      <div class="container">
+        <h2>Find & Book Your Perfect Barber</h2>
+        <p>Connect with top-rated barbers in your area</p>
+      </div>
+    </section>
+
+    <!-- Search & Filter -->
+    <section class="search-section">
+      <div class="container">
+        <div class="search-box">
+          <input
+            type="text"
+            id="searchInput"
+            placeholder="Search barbers by name or service..."
+          />
+          <button onclick="searchBarbers()">🔍 Search</button>
+        </div>
+        <div class="filter-box">
+          <label>
+            <input
+              type="checkbox"
+              id="filterHighRated"
+              onchange="applyFilters()"
+            />
+            High Rated (4.5+)
+          </label>
+          <label>
+            <input
+              type="checkbox"
+              id="filterAvailableToday"
+              onchange="applyFilters()"
+            />
+            Available Today
+          </label>
+        </div>
+      </div>
+    </section>
+
+    <!-- Barbers Grid -->
+    <section class="barbers-section">
+      <div class="container">
+        <h3>Our Barbers</h3>
+        <div id="barbersGrid" class="barbers-grid">
+          <!-- Barber cards will be inserted here by JavaScript -->
+        </div>
+        <div id="noResults" class="no-results" style="display: none">
+          <p>No barbers found matching your criteria.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <div class="container">
+        <p>&copy; 2025 BarberBook. All rights reserved.</p>
+        <p>A Software Engineering Final Project</p>
+      </div>
+    </footer>
+
+    <script src="app.js"></script>
+    <script>
+      // Initialize home page
+      document.addEventListener("DOMContentLoaded", () => {
+        loadBarbers();
+        updateNavigation();
+      });
+    </script>
+  </body>
+</html>
