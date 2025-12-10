@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Barber Dashboard - BarberBook</title>
+    <link rel="stylesheet" href="styles.css?v=2" />
+  </head>
+  <body>
+    <!-- Navigation -->
+    <nav class="navbar">
+      <div class="container">
+        <div class="nav-brand">
+          <h1>✂️ BarberBook</h1>
+        </div>
+        <ul class="nav-menu">
+          <li><a href="index.html">Home</a></li>
+          <li><a href="barber-dashboard.html" class="active">Dashboard</a></li>
+          <li><a href="#" onclick="logout()">Logout</a></li>
+        </ul>
+      </div>
+    </nav>
+
+    <!-- Dashboard -->
+    <section class="dashboard-section">
+      <div class="container">
+        <div class="dashboard-header">
+          <h2>Barber Dashboard - <span id="barberName">Barber</span></h2>
+          <div class="view-toggle">
+            <button
+              onclick="switchView('list')"
+              id="listViewBtn"
+              class="btn-secondary active"
+            >
+              List View
+            </button>
+            <button
+              onclick="switchView('calendar')"
+              id="calendarViewBtn"
+              class="btn-secondary"
+            >
+              Calendar View
+            </button>
+          </div>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <h4>Today's Appointments</h4>
+            <p class="stat-number" id="todayCount">0</p>
+          </div>
+          <div class="stat-card">
+            <h4>Upcoming</h4>
+            <p class="stat-number" id="upcomingCount">0</p>
+          </div>
+          <div class="stat-card">
+            <h4>Total This Month</h4>
+            <p class="stat-number" id="monthCount">0</p>
+          </div>
+          <div class="stat-card">
+            <h4>Revenue (Est.)</h4>
+            <p class="stat-number" id="revenueCount">$0</p>
+          </div>
+        </div>
+
+        <!-- List View -->
+        <div id="listView" class="dashboard-card">
+          <h3>Your Appointments</h3>
+          <div class="date-filter">
+            <label for="filterDate">Filter by Date:</label>
+            <input
+              type="date"
+              id="filterDate"
+              onchange="filterAppointmentsByDate()"
+            />
+            <button onclick="clearDateFilter()" class="btn-secondary">
+              Clear
+            </button>
+          </div>
+          <div id="appointmentsList" class="appointments-list">
+            <!-- Appointments will be loaded here -->
+          </div>
+        </div>
+
+        <!-- Calendar View -->
+        <div id="calendarView" class="dashboard-card" style="display: none">
+          <h3>Calendar View</h3>
+          <div class="calendar-controls">
+            <button onclick="changeWeek(-1)" class="btn-secondary">
+              ← Previous Week
+            </button>
+            <span id="weekDisplay">Week of Dec 8, 2025</span>
+            <button onclick="changeWeek(1)" class="btn-secondary">
+              Next Week →
+            </button>
+          </div>
+          <div id="calendarGrid" class="calendar-grid">
+            <!-- Calendar will be rendered here -->
+          </div>
+        </div>
+
+        <!-- Manage Services -->
+        <div class="dashboard-card">
+          <h3>Manage Services</h3>
+          <div id="servicesList" class="services-management">
+            <!-- Services will be loaded here -->
+          </div>
+          <button onclick="toggleAddService()" class="btn-primary">
+            + Add New Service
+          </button>
+        </div>
+
+        <!-- Working Hours -->
+        <div class="dashboard-card">
+          <h3>Working Hours</h3>
+          <div id="workingHours" class="working-hours">
+            <!-- Working hours will be loaded here -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <div class="container">
+        <p>&copy; 2025 BarberBook. All rights reserved.</p>
+      </div>
+    </footer>
+
+    <script src="app.js"></script>
+    <script>
+      // Initialize barber dashboard
+      document.addEventListener("DOMContentLoaded", () => {
+        if (!isLoggedIn()) {
+          window.location.href = "login.html";
+          return;
+        }
+
+        const user = getCurrentUser();
+        if (user.role !== "barber") {
+          window.location.href = "customer-dashboard.html";
+          return;
+        }
+
+        loadBarberDashboard();
+      });
+    </script>
+  </body>
+</html>

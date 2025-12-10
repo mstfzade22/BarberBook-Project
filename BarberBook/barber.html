@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Barber Profile - BarberBook</title>
+    <link rel="stylesheet" href="styles.css?v=2" />
+  </head>
+  <body>
+    <!-- Navigation -->
+    <nav class="navbar">
+      <div class="container">
+        <div class="nav-brand">
+          <h1>✂️ BarberBook</h1>
+        </div>
+        <ul class="nav-menu">
+          <li><a href="index.html">Home</a></li>
+          <li><a href="#" id="dashboardLink">Dashboard</a></li>
+          <li><a href="login.html" id="authLink">Login</a></li>
+        </ul>
+      </div>
+    </nav>
+
+    <!-- Barber Profile -->
+    <section class="profile-section">
+      <div class="container">
+        <div id="barberProfile">
+          <!-- Profile will be loaded by JavaScript -->
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <div class="container">
+        <p>&copy; 2025 BarberBook. All rights reserved.</p>
+      </div>
+    </footer>
+
+    <script src="app.js"></script>
+    <script>
+      // Load barber profile from URL parameter
+      document.addEventListener("DOMContentLoaded", () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const barberId = urlParams.get("id");
+
+        if (barberId) {
+          loadBarberProfile(barberId);
+        } else {
+          document.getElementById("barberProfile").innerHTML = `
+                    <div class="error-message">
+                        <h2>Barber Not Found</h2>
+                        <p><a href="index.html">Return to Home</a></p>
+                    </div>
+                `;
+        }
+
+        updateNavigation();
+      });
+    </script>
+  </body>
+</html>
