@@ -47,5 +47,173 @@
     "role": "barber",
     "barberId": "4",
     "createdAt": "2025-11-17T08:00:00.000Z"
+  },
+  {
+    "id": "user_1765390365784_pgeekzoye",
+    "name": "Test Customer",
+    "email": "test1765390365709@test.com",
+    "passwordHash": "$2a$10$70kXPGS0dZsmd4H4cxl/hexhfmS1Qi3Bo3YcuG6mlEpTXk4OgAMtG",
+    "phone": "+1234567890",
+    "role": "customer",
+    "createdAt": "2025-12-10T18:12:45.784Z"
+  },
+  {
+    "id": "user_1765390365843_d20knp4q6",
+    "name": "User One",
+    "email": "duplicate1765390365791@test.com",
+    "passwordHash": "$2a$10$iUezVcgk/UKHm6VFq0aD5.Izo9yximDq5YezFrfjbTtZDAs8c7u.e",
+    "role": "customer",
+    "createdAt": "2025-12-10T18:12:45.843Z"
+  },
+  {
+    "id": "user_1765390365898_f45i3t3dz",
+    "name": "Login Test User",
+    "email": "logintest@test.com",
+    "passwordHash": "$2a$10$xW0sBhP92ZiwdXFeAkd6aegRf2UJTHUWFBdOMTy2uQa68EZnQU0z2",
+    "role": "customer",
+    "createdAt": "2025-12-10T18:12:45.898Z"
+  },
+  {
+    "id": "user_1765390366052_a3l9k448i",
+    "name": "Me Test User",
+    "email": "metest@test.com",
+    "passwordHash": "$2a$10$ovMi8S/9htihl8hYLx/MpeMfn6YZAoBPr8sgDxgCYdbeHx4elTVdK",
+    "role": "customer",
+    "createdAt": "2025-12-10T18:12:46.052Z"
+  },
+  {
+    "id": "user_1765390437668_wdl7pybd9",
+    "name": "Test Customer",
+    "email": "customer1765390437603@test.com",
+    "passwordHash": "$2a$10$XD120hs.6R2EsNRGF.2kjekDbagFxIgqg/x5pUkC/C8t0gpIioomG",
+    "role": "customer",
+    "createdAt": "2025-12-10T18:13:57.668Z"
+  },
+  {
+    "id": "user_1765390437722_23yclbmmn",
+    "name": "Test Barber",
+    "email": "barber1765390437671@test.com",
+    "passwordHash": "$2a$10$L8/HXOGBqMBFmLo36cluOuRmPLVwgldcziATYj6vRUPo4o/GPl/5u",
+    "phone": "+1234567890",
+    "role": "barber",
+    "createdAt": "2025-12-10T18:13:57.722Z"
+  },
+  {
+    "id": "user_1765390437842_r1u8f4p6c",
+    "name": "Test Customer",
+    "email": "test1765390437789@test.com",
+    "passwordHash": "$2a$10$.QT57b6f1hXpBoF8pDoDn.5CNkchSGYMQb5HlgBekXxEyTJFp/VfS",
+    "phone": "+1234567890",
+    "role": "customer",
+    "createdAt": "2025-12-10T18:13:57.842Z"
+  },
+  {
+    "id": "user_1765390437894_84bjqzoee",
+    "name": "User One",
+    "email": "duplicate1765390437844@test.com",
+    "passwordHash": "$2a$10$srYxK3kQJA0BDAS3GdwYC.OkIBzsc9x6MkfTBICXFFHkCbtEvpiSq",
+    "role": "customer",
+    "createdAt": "2025-12-10T18:13:57.894Z"
+  },
+  {
+    "id": "user_1765390461069_hxqc416ty",
+    "name": "Test Customer",
+    "email": "customer1765390461004@test.com",
+    "passwordHash": "$2a$10$O9ZY0kzmQytr2h1obnu5O.sAzUGQQ5o79YAuiNftFib/mtziP9gw6",
+    "role": "customer",
+    "createdAt": "2025-12-10T18:14:21.069Z"
+  },
+  {
+    "id": "user_1765390461125_3gki6j5bp",
+    "name": "Test Barber",
+    "email": "barber1765390461073@test.com",
+    "passwordHash": "$2a$10$AgA9lHrLodmEHpeirOjhHuxEjiOkGscJEPDRuPj8pW5wmBXOj5wX.",
+    "phone": "+1234567890",
+    "role": "barber",
+    "createdAt": "2025-12-10T18:14:21.125Z"
+  },
+  {
+    "id": "user_1765390803909_8r7beog7l",
+    "name": "Test Customer",
+    "email": "test1765390803846@test.com",
+    "passwordHash": "$2a$10$8xmZ9PDfr..Vi4U2Y58nSeCkL39/0kK8WLU7HdeEWvwt5FsLPwgi6",
+    "phone": "+1234567890",
+    "role": "customer",
+    "createdAt": "2025-12-10T18:20:03.909Z"
+  },
+  {
+    "id": "user_1765390803965_mas7xsmig",
+    "name": "User One",
+    "email": "duplicate1765390803914@test.com",
+    "passwordHash": "$2a$10$JU3QX37x20GwuO9KWUMpvO7u6KIqUicU9ejWd2Pdq6ej5UsHBFigi",
+    "role": "customer",
+    "createdAt": "2025-12-10T18:20:03.965Z"
+  },
+  {
+    "id": "user_1765390891697_p1nmbx4lg",
+    "name": "Test Customer",
+    "email": "test1765390891632@test.com",
+    "passwordHash": "$2a$10$4RaUSeG615IJQacXFZRyVOyDH9JgtmhOKxH1g6StzJXo.guFg82hW",
+    "phone": "+1234567890",
+    "role": "customer",
+    "createdAt": "2025-12-10T18:21:31.697Z"
+  },
+  {
+    "id": "user_1765390891752_bxaqia9ru",
+    "name": "User One",
+    "email": "duplicate1765390891701@test.com",
+    "passwordHash": "$2a$10$keSyp0pIwmRM6/BXKW5Ic.AGtJL7LbY74R8fHbnG9GzFZjcuXxZ3W",
+    "role": "customer",
+    "createdAt": "2025-12-10T18:21:31.752Z"
+  },
+  {
+    "id": "user_1765390910368_3jycz2eqw",
+    "name": "Test Customer",
+    "email": "test1765390910303@test.com",
+    "passwordHash": "$2a$10$.LzDjkLvNzcDamjAU5zkx.TmR10t1wfsmbNR9iL6BH/PDnHM6.CwS",
+    "phone": "+1234567890",
+    "role": "customer",
+    "createdAt": "2025-12-10T18:21:50.368Z"
+  },
+  {
+    "id": "user_1765390910425_agx3htfg6",
+    "name": "User One",
+    "email": "duplicate1765390910373@test.com",
+    "passwordHash": "$2a$10$rLL5GipHEyqrthwF7XdMr.r2T0YSpLicQg9B4pau./zYlO6DkHdXK",
+    "role": "customer",
+    "createdAt": "2025-12-10T18:21:50.425Z"
+  },
+  {
+    "id": "user_1765390910587_f4rsyboyg",
+    "name": "Me Test User",
+    "email": "metest1765390910536@test.com",
+    "passwordHash": "$2a$10$j5gAcFIANQskWSUHhs/InepkCkssrlijVaDprIhJyc9u1XiutXWUS",
+    "role": "customer",
+    "createdAt": "2025-12-10T18:21:50.587Z"
+  },
+  {
+    "id": "user_1765390923019_eia9rpv37",
+    "name": "Test Customer",
+    "email": "test1765390922956@test.com",
+    "passwordHash": "$2a$10$4dw2GeKKqjdBzKoJwHeu2.mhKAlMzn3/hf.3bFMBbqfQVnqX5s6bG",
+    "phone": "+1234567890",
+    "role": "customer",
+    "createdAt": "2025-12-10T18:22:03.019Z"
+  },
+  {
+    "id": "user_1765390923074_a4ekt4f95",
+    "name": "User One",
+    "email": "duplicate1765390923023@test.com",
+    "passwordHash": "$2a$10$.lEMDHCauKzUSfIQdkrM1OFOjgYWeX3MWkAk5z5UgMVbrgiPCR/ui",
+    "role": "customer",
+    "createdAt": "2025-12-10T18:22:03.074Z"
+  },
+  {
+    "id": "user_1765390923231_b28plvvgp",
+    "name": "Me Test User",
+    "email": "metest1765390923181@test.com",
+    "passwordHash": "$2a$10$RGmRm2bhPCJ7gIP7H14t0ecb4lqvk5o/KMxQCqxkxjsg60cYOh.Cm",
+    "role": "customer",
+    "createdAt": "2025-12-10T18:22:03.231Z"
   }
 ]
