@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Customer Dashboard - BarberBook</title>
+    <link rel="stylesheet" href="styles.css?v=2" />
+  </head>
+  <body>
+    <!-- Navigation -->
+    <nav class="navbar">
+      <div class="container">
+        <div class="nav-brand">
+          <h1>✂️ BarberBook</h1>
+        </div>
+        <ul class="nav-menu">
+          <li><a href="index.html">Home</a></li>
+          <li>
+            <a href="customer-dashboard.html" class="active">Dashboard</a>
+          </li>
+          <li><a href="#" onclick="logout()">Logout</a></li>
+        </ul>
+      </div>
+    </nav>
+
+    <!-- Dashboard -->
+    <section class="dashboard-section">
+      <div class="container">
+        <div class="dashboard-header">
+          <h2>Welcome, <span id="userName">Customer</span>!</h2>
+          <button
+            onclick="window.location.href='index.html'"
+            class="btn-primary"
+          >
+            + Book New Appointment
+          </button>
+        </div>
+
+        <!-- Profile Section -->
+        <div class="dashboard-card">
+          <h3>Your Profile</h3>
+          <div id="profileInfo" class="profile-info">
+            <!-- Profile info will be loaded here -->
+          </div>
+          <button onclick="toggleEditProfile()" class="btn-secondary">
+            Edit Profile
+          </button>
+        </div>
+
+        <!-- Upcoming Appointments -->
+        <div class="dashboard-card">
+          <h3>Upcoming Appointments</h3>
+          <div id="upcomingAppointments" class="appointments-list">
+            <!-- Appointments will be loaded here -->
+          </div>
+        </div>
+
+        <!-- Past Appointments -->
+        <div class="dashboard-card">
+          <h3>Past Appointments</h3>
+          <div id="pastAppointments" class="appointments-list">
+            <!-- Past appointments will be loaded here -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <div class="container">
+        <p>&copy; 2025 BarberBook. All rights reserved.</p>
+      </div>
+    </footer>
+
+    <script src="app.js"></script>
+    <script>
+      // Initialize customer dashboard
+      document.addEventListener("DOMContentLoaded", () => {
+        if (!isLoggedIn()) {
+          window.location.href = "login.html";
+          return;
+        }
+
+        const user = getCurrentUser();
+        if (user.role === "barber") {
+          window.location.href = "barber-dashboard.html";
+          return;
+        }
+
+        loadCustomerDashboard();
+      });
+    </script>
+  </body>
+</html>

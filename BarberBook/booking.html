@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Book Appointment - BarberBook</title>
+    <link rel="stylesheet" href="styles.css?v=2" />
+  </head>
+  <body>
+    <!-- Navigation -->
+    <nav class="navbar">
+      <div class="container">
+        <div class="nav-brand">
+          <h1>✂️ BarberBook</h1>
+        </div>
+        <ul class="nav-menu">
+          <li><a href="index.html">Home</a></li>
+          <li><a href="#" id="dashboardLink">Dashboard</a></li>
+          <li><a href="login.html" id="authLink">Login</a></li>
+        </ul>
+      </div>
+    </nav>
+
+    <!-- Booking Flow -->
+    <section class="booking-section">
+      <div class="container">
+        <h2>Book Your Appointment</h2>
+
+        <!-- Progress Steps -->
+        <div class="booking-steps">
+          <div class="step active" data-step="1">
+            <span class="step-number">1</span>
+            <span class="step-label">Service</span>
+          </div>
+          <div class="step" data-step="2">
+            <span class="step-number">2</span>
+            <span class="step-label">Date & Time</span>
+          </div>
+          <div class="step" data-step="3">
+            <span class="step-number">3</span>
+            <span class="step-label">Confirm</span>
+          </div>
+        </div>
+
+        <!-- Step 1: Select Service -->
+        <div id="step1" class="booking-step active">
+          <h3>Select a Service</h3>
+          <div id="barberInfo" class="barber-info-card">
+            <!-- Barber info will be loaded here -->
+          </div>
+          <div id="servicesList" class="services-list">
+            <!-- Services will be loaded here -->
+          </div>
+        </div>
+
+        <!-- Step 2: Select Date & Time -->
+        <div id="step2" class="booking-step">
+          <h3>Choose Date & Time</h3>
+          <div class="date-time-selector">
+            <div class="date-selector">
+              <label for="appointmentDate">Select Date:</label>
+              <input
+                type="date"
+                id="appointmentDate"
+                onchange="loadTimeSlots()"
+              />
+            </div>
+            <div id="timeSlots" class="time-slots">
+              <!-- Time slots will be generated here -->
+            </div>
+          </div>
+          <div class="booking-navigation">
+            <button onclick="previousStep()" class="btn-secondary">
+              ← Back
+            </button>
+            <button
+              onclick="nextStep()"
+              class="btn-primary"
+              id="step2Next"
+              disabled
+            >
+              Next →
+            </button>
+          </div>
+        </div>
+
+        <!-- Step 3: Confirm Booking -->
+        <div id="step3" class="booking-step">
+          <h3>Confirm Your Booking</h3>
+          <div id="bookingSummary" class="booking-summary">
+            <!-- Booking summary will be displayed here -->
+          </div>
+          <div class="booking-navigation">
+            <button onclick="previousStep()" class="btn-secondary">
+              ← Back
+            </button>
+            <button onclick="confirmBooking()" class="btn-primary">
+              Confirm Booking ✓
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <div class="container">
+        <p>&copy; 2025 BarberBook. All rights reserved.</p>
+      </div>
+    </footer>
+
+    <script src="app.js"></script>
+    <script>
+      // Initialize booking page
+      document.addEventListener("DOMContentLoaded", () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const barberId = urlParams.get("barberId");
+
+        if (!barberId) {
+          showToast("Invalid booking request", "error");
+          setTimeout(() => (window.location.href = "index.html"), 2000);
+          return;
+        }
+
+        initializeBooking(barberId);
+        updateNavigation();
+
+        // Set minimum date to today
+        const dateInput = document.getElementById("appointmentDate");
+        const today = new Date().toISOString().split("T")[0];
+        dateInput.min = today;
+
+        // Set default date to tomorrow
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        dateInput.value = tomorrow.toISOString().split("T")[0];
+      });
+    </script>
+  </body>
+</html>

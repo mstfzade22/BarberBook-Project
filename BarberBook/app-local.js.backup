@@ -1,0 +1,1073 @@
+// ========================================
+// DATA STORAGE & STATE MANAGEMENT
+// ========================================
+
+// Sample data - In production, this would come from a backend API
+let barbersData = [];
+let availabilityData = {};
+let appointmentsData = [];
+
+// Booking state
+let currentBooking = {
+  barberId: null,
+  barber: null,
+  serviceId: null,
+  service: null,
+  date: null,
+  time: null,
+  currentStep: 1,
+};
+
+// ========================================
+// INITIALIZATION & DATA LOADING
+// ========================================
+
+// Load data from JSON files
+async function loadData() {
+  try {
+    const [barbersResponse, availabilityResponse, appointmentsResponse] =
+      await Promise.all([
+        fetch("data/barbers.json"),
+        fetch("data/availability.json"),
+        fetch("data/appointments.json"),
+      ]);
+
+    barbersData = await barbersResponse.json();
+    availabilityData = await availabilityResponse.json();
+    appointmentsData = await appointmentsResponse.json();
+
+    // Load appointments from localStorage (simulated bookings)
+    const localAppointments = localStorage.getItem("appointments");
+    if (localAppointments) {
+      const parsed = JSON.parse(localAppointments);
+      appointmentsData = [...appointmentsData, ...parsed];
+    }
+  } catch (error) {
+    console.error("Error loading data:", error);
+    showToast("Error loading data. Using demo mode.", "error");
+  }
+}
+
+// ========================================
+// AUTHENTICATION (SIMULATED)
+// ========================================
+
+function isLoggedIn() {
+  return localStorage.getItem("currentUser") !== null;
+}
+
+function getCurrentUser() {
+  const userStr = localStorage.getItem("currentUser");
+  return userStr ? JSON.parse(userStr) : null;
+}
+
+function handleLogin(event) {
+  event.preventDefault();
+
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+
+  // Simple demo authentication
+  let role = "customer";
+  let name = "Demo Customer";
+
+  if (email === "barber@demo.com") {
+    role = "barber";
+    name = "Demo Barber";
+  }
+
+  const user = {
+    id: Math.random().toString(36).substr(2, 9),
+    email: email,
+    name: name,
+    role: role,
+    loginTime: new Date().toISOString(),
+  };
+
+  localStorage.setItem("currentUser", JSON.stringify(user));
+  showToast("Login successful!", "success");
+
+  setTimeout(() => {
+    if (role === "barber") {
+      window.location.href = "barber-dashboard.html";
+    } else {
+      window.location.href = "customer-dashboard.html";
+    }
+  }, 1000);
+}
+
+function handleRegister(event) {
+  event.preventDefault();
+
+  const fullName = document.getElementById("fullName").value;
+  const email = document.getElementById("email").value;
+  const phone = document.getElementById("phone").value;
+  const password = document.getElementById("password").value;
+  const confirmPassword = document.getElementById("confirmPassword").value;
+  const isBarber = document.getElementById("registerAsBarber").checked;
+
+  // Validation
+  if (password !== confirmPassword) {
+    showToast("Passwords do not match!", "error");
+    return;
+  }
+
+  if (password.length < 6) {
+    showToast("Password must be at least 6 characters!", "error");
+    return;
+  }
+
+  const user = {
+    id: Math.random().toString(36).substr(2, 9),
+    name: fullName,
+    email: email,
+    phone: phone,
+    role: isBarber ? "barber" : "customer",
+    loginTime: new Date().toISOString(),
+  };
+
+  localStorage.setItem("currentUser", JSON.stringify(user));
+  showToast("Registration successful!", "success");
+
+  setTimeout(() => {
+    if (isBarber) {
+      window.location.href = "barber-dashboard.html";
+    } else {
+      window.location.href = "customer-dashboard.html";
+    }
+  }, 1000);
+}
+
+function logout() {
+  localStorage.removeItem("currentUser");
+  showToast("Logged out successfully", "success");
+  setTimeout(() => {
+    window.location.href = "index.html";
+  }, 1000);
+}
+
+function updateNavigation() {
+  const authLink = document.getElementById("authLink");
+  const dashboardLink = document.getElementById("dashboardLink");
+
+  if (isLoggedIn()) {
+    const user = getCurrentUser();
+    if (authLink) {
+      authLink.textContent = "Logout";
+      authLink.href = "#";
+      authLink.onclick = (e) => {
+        e.preventDefault();
+        logout();
+      };
+    }
+    if (dashboardLink) {
+      dashboardLink.textContent = "Dashboard";
+      dashboardLink.href =
+        user.role === "barber"
+          ? "barber-dashboard.html"
+          : "customer-dashboard.html";
+    }
+  } else {
+    if (authLink) {
+      authLink.textContent = "Login";
+      authLink.href = "login.html";
+    }
+    if (dashboardLink) {
+      dashboardLink.style.display = "none";
+    }
+  }
+}
+
+// ========================================
+// HOME PAGE - BARBER LISTING
+// ========================================
+
+async function loadBarbers() {
+  await loadData();
+  displayBarbers(barbersData);
+}
+
+function displayBarbers(barbers) {
+  const grid = document.getElementById("barbersGrid");
+  const noResults = document.getElementById("noResults");
+
+  if (!grid) return;
+
+  if (barbers.length === 0) {
+    grid.style.display = "none";
+    noResults.style.display = "block";
+    return;
+  }
+
+  grid.style.display = "grid";
+  noResults.style.display = "none";
+
+  grid.innerHTML = barbers
+    .map(
+      (barber) => `
+        <div class="barber-card" onclick="window.location.href='barber.html?id=${
+          barber.id
+        }'">
+            <img src="${barber.photo}" alt="${barber.name}">
+            <div class="barber-card-content">
+                <h4>${barber.name}</h4>
+                <div class="barber-rating">
+                    <span>⭐ ${barber.rating}</span>
+                    <span>(${barber.totalReviews} reviews)</span>
+                </div>
+                <div class="barber-services">
+                    ${barber.services.map((s) => s.name).join(", ")}
+                </div>
+                <div class="barber-location">
+                    📍 ${barber.location}
+                </div>
+            </div>
+        </div>
+    `
+    )
+    .join("");
+}
+
+function searchBarbers() {
+  const searchTerm = document.getElementById("searchInput").value.toLowerCase();
+
+  const filtered = barbersData.filter((barber) => {
+    const nameMatch = barber.name.toLowerCase().includes(searchTerm);
+    const serviceMatch = barber.services.some((s) =>
+      s.name.toLowerCase().includes(searchTerm)
+    );
+    return nameMatch || serviceMatch;
+  });
+
+  displayBarbers(filtered);
+}
+
+function applyFilters() {
+  const highRated = document.getElementById("filterHighRated").checked;
+  const availableToday = document.getElementById(
+    "filterAvailableToday"
+  ).checked;
+  const searchTerm = document.getElementById("searchInput").value.toLowerCase();
+
+  let filtered = barbersData;
+
+  // Apply search
+  if (searchTerm) {
+    filtered = filtered.filter((barber) => {
+      const nameMatch = barber.name.toLowerCase().includes(searchTerm);
+      const serviceMatch = barber.services.some((s) =>
+        s.name.toLowerCase().includes(searchTerm)
+      );
+      return nameMatch || serviceMatch;
+    });
+  }
+
+  // Apply rating filter
+  if (highRated) {
+    filtered = filtered.filter((barber) => barber.rating >= 4.5);
+  }
+
+  // Apply availability filter (simplified - checks if barber has any availability data)
+  if (availableToday) {
+    const today = new Date().toISOString().split("T")[0];
+    filtered = filtered.filter(
+      (barber) =>
+        availabilityData[barber.id] && availabilityData[barber.id][today]
+    );
+  }
+
+  displayBarbers(filtered);
+}
+
+// ========================================
+// BARBER PROFILE PAGE
+// ========================================
+
+async function loadBarberProfile(barberId) {
+  await loadData();
+
+  const barber = barbersData.find((b) => b.id === barberId);
+  if (!barber) {
+    document.getElementById("barberProfile").innerHTML = `
+            <div class="error-message">
+                <h2>Barber Not Found</h2>
+                <p><a href="index.html">Return to Home</a></p>
+            </div>
+        `;
+    return;
+  }
+
+  document.getElementById("barberProfile").innerHTML = `
+        <div class="profile-header">
+            <img src="${barber.photo}" alt="${
+    barber.name
+  }" class="profile-photo">
+            <div class="profile-info">
+                <h2>${barber.name}</h2>
+                <div class="barber-rating">
+                    <span>⭐ ${barber.rating}</span>
+                    <span>(${barber.totalReviews} reviews)</span>
+                </div>
+                <p>${barber.bio}</p>
+                <div class="barber-location">📍 ${barber.location}</div>
+                <button onclick="window.location.href='booking.html?barberId=${
+                  barber.id
+                }'" 
+                        class="btn-primary" style="margin-top: 1rem;">
+                    Book Appointment
+                </button>
+            </div>
+        </div>
+        
+        <div class="profile-details">
+            <div class="detail-card">
+                <h4>Services & Pricing</h4>
+                <div class="services-list">
+                    ${barber.services
+                      .map(
+                        (service) => `
+                        <div class="service-item">
+                            <div class="service-info">
+                                <h5>${service.name}</h5>
+                                <span class="service-duration">${service.duration} minutes</span>
+                            </div>
+                            <div class="service-price">$${service.price}</div>
+                        </div>
+                    `
+                      )
+                      .join("")}
+                </div>
+            </div>
+            
+            <div class="detail-card">
+                <h4>Working Hours</h4>
+                <ul class="working-hours-list">
+                    ${Object.entries(barber.workingHours)
+                      .map(
+                        ([day, hours]) => `
+                        <li>
+                            <strong>${
+                              day.charAt(0).toUpperCase() + day.slice(1)
+                            }:</strong>
+                            <span>${hours}</span>
+                        </li>
+                    `
+                      )
+                      .join("")}
+                </ul>
+            </div>
+        </div>
+        
+        <div class="detail-card" style="margin-top: 2rem;">
+            <h4>Gallery</h4>
+            <div class="gallery-grid">
+                ${barber.gallery
+                  .map(
+                    (img) => `
+                    <img src="${img}" alt="Work sample">
+                `
+                  )
+                  .join("")}
+            </div>
+        </div>
+        
+        <div class="detail-card" style="margin-top: 2rem;">
+            <h4>Location</h4>
+            <div class="map-placeholder">
+                📍 Map view: ${barber.location}<br>
+                <small>(In production, this would show Google Maps integration)</small>
+            </div>
+        </div>
+    `;
+}
+
+// ========================================
+// BOOKING FLOW
+// ========================================
+
+async function initializeBooking(barberId) {
+  await loadData();
+
+  const barber = barbersData.find((b) => b.id === barberId);
+  if (!barber) {
+    showToast("Barber not found", "error");
+    return;
+  }
+
+  currentBooking.barberId = barberId;
+  currentBooking.barber = barber;
+
+  // Display barber info
+  document.getElementById("barberInfo").innerHTML = `
+        <h4>${barber.name}</h4>
+        <p>${barber.location}</p>
+    `;
+
+  // Display services
+  document.getElementById("servicesList").innerHTML = barber.services
+    .map(
+      (service) => `
+        <div class="service-item selectable" onclick="selectService('${service.id}')">
+            <div class="service-info">
+                <h5>${service.name}</h5>
+                <span class="service-duration">${service.duration} minutes</span>
+            </div>
+            <div class="service-price">$${service.price}</div>
+        </div>
+    `
+    )
+    .join("");
+}
+
+function selectService(serviceId) {
+  const service = currentBooking.barber.services.find(
+    (s) => s.id === serviceId
+  );
+  currentBooking.serviceId = serviceId;
+  currentBooking.service = service;
+
+  // Update UI
+  document.querySelectorAll(".service-item").forEach((item) => {
+    item.classList.remove("selected");
+  });
+  event.target.closest(".service-item").classList.add("selected");
+
+  // Move to next step
+  setTimeout(() => nextStep(), 300);
+}
+
+function nextStep() {
+  const currentStep = currentBooking.currentStep;
+
+  // Validation
+  if (currentStep === 1 && !currentBooking.serviceId) {
+    showToast("Please select a service", "warning");
+    return;
+  }
+
+  if (currentStep === 2 && (!currentBooking.date || !currentBooking.time)) {
+    showToast("Please select date and time", "warning");
+    return;
+  }
+
+  // Check if user is logged in before final step
+  if (currentStep === 2 && !isLoggedIn()) {
+    showToast("Please login to complete booking", "warning");
+    setTimeout(() => {
+      window.location.href = "login.html";
+    }, 1500);
+    return;
+  }
+
+  // Hide current step
+  document.getElementById(`step${currentStep}`).classList.remove("active");
+  document
+    .querySelector(`.step[data-step="${currentStep}"]`)
+    .classList.remove("active");
+
+  // Show next step
+  currentBooking.currentStep++;
+  document
+    .getElementById(`step${currentBooking.currentStep}`)
+    .classList.add("active");
+  document
+    .querySelector(`.step[data-step="${currentBooking.currentStep}"]`)
+    .classList.add("active");
+
+  // If moving to step 3, show summary
+  if (currentBooking.currentStep === 3) {
+    displayBookingSummary();
+  }
+}
+
+function previousStep() {
+  const currentStep = currentBooking.currentStep;
+
+  // Hide current step
+  document.getElementById(`step${currentStep}`).classList.remove("active");
+  document
+    .querySelector(`.step[data-step="${currentStep}"]`)
+    .classList.remove("active");
+
+  // Show previous step
+  currentBooking.currentStep--;
+  document
+    .getElementById(`step${currentBooking.currentStep}`)
+    .classList.add("active");
+  document
+    .querySelector(`.step[data-step="${currentBooking.currentStep}"]`)
+    .classList.add("active");
+}
+
+function loadTimeSlots() {
+  const date = document.getElementById("appointmentDate").value;
+  if (!date) return;
+
+  currentBooking.date = date;
+
+  const slots = generateTimeSlots(
+    currentBooking.barberId,
+    date,
+    currentBooking.service.duration
+  );
+
+  const timeSlotsContainer = document.getElementById("timeSlots");
+
+  if (slots.length === 0) {
+    timeSlotsContainer.innerHTML =
+      '<p style="color: var(--text-secondary);">No available slots for this date. Please try another date.</p>';
+    return;
+  }
+
+  timeSlotsContainer.innerHTML = slots
+    .map(
+      (slot) => `
+        <div class="time-slot ${slot.available ? "" : "disabled"}" 
+             onclick="${
+               slot.available ? `selectTimeSlot('${slot.time}')` : ""
+             }">
+            ${slot.time}
+        </div>
+    `
+    )
+    .join("");
+}
+
+function generateTimeSlots(barberId, date, duration) {
+  const availability = availabilityData[barberId];
+  if (!availability || !availability[date]) {
+    return [];
+  }
+
+  const dayAvailability = availability[date];
+  const [startHour, startMin] = dayAvailability.workingHours[0]
+    .split(":")
+    .map(Number);
+  const [endHour, endMin] = dayAvailability.workingHours[1]
+    .split(":")
+    .map(Number);
+
+  const slots = [];
+  let currentTime = startHour * 60 + startMin; // Convert to minutes
+  const endTime = endHour * 60 + endMin;
+
+  // Check if date is today
+  const today = new Date().toISOString().split("T")[0];
+  const isToday = date === today;
+  const now = new Date();
+  const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+  while (currentTime + duration <= endTime) {
+    const hours = Math.floor(currentTime / 60);
+    const minutes = currentTime % 60;
+    const timeStr = `${String(hours).padStart(2, "0")}:${String(
+      minutes
+    ).padStart(2, "0")}`;
+
+    // Check if slot is in the past (for today)
+    const isPast = isToday && currentTime < currentMinutes;
+
+    // Check if slot is during break
+    const isBreak = dayAvailability.breaks.some(([breakStart, breakEnd]) => {
+      const [bsH, bsM] = breakStart.split(":").map(Number);
+      const [beH, beM] = breakEnd.split(":").map(Number);
+      const breakStartMin = bsH * 60 + bsM;
+      const breakEndMin = beH * 60 + beM;
+      return currentTime >= breakStartMin && currentTime < breakEndMin;
+    });
+
+    // Check if slot is already booked
+    const isBooked = dayAvailability.bookedSlots.includes(timeStr);
+
+    slots.push({
+      time: timeStr,
+      available: !isPast && !isBreak && !isBooked,
+    });
+
+    currentTime += 30; // 30-minute intervals
+  }
+
+  return slots;
+}
+
+function selectTimeSlot(time) {
+  currentBooking.time = time;
+
+  // Update UI
+  document.querySelectorAll(".time-slot").forEach((slot) => {
+    slot.classList.remove("selected");
+  });
+  event.target.classList.add("selected");
+
+  // Enable next button
+  document.getElementById("step2Next").disabled = false;
+}
+
+function displayBookingSummary() {
+  const user = getCurrentUser();
+  const summary = document.getElementById("bookingSummary");
+
+  summary.innerHTML = `
+        <div class="summary-item">
+            <strong>Barber:</strong>
+            <span>${currentBooking.barber.name}</span>
+        </div>
+        <div class="summary-item">
+            <strong>Service:</strong>
+            <span>${currentBooking.service.name}</span>
+        </div>
+        <div class="summary-item">
+            <strong>Duration:</strong>
+            <span>${currentBooking.service.duration} minutes</span>
+        </div>
+        <div class="summary-item">
+            <strong>Date:</strong>
+            <span>${formatDate(currentBooking.date)}</span>
+        </div>
+        <div class="summary-item">
+            <strong>Time:</strong>
+            <span>${currentBooking.time}</span>
+        </div>
+        <div class="summary-item">
+            <strong>Customer:</strong>
+            <span>${user.name}</span>
+        </div>
+        <div class="summary-item">
+            <strong>Total Price:</strong>
+            <span>$${currentBooking.service.price}</span>
+        </div>
+    `;
+}
+
+function confirmBooking() {
+  if (!isLoggedIn()) {
+    showToast("Please login to complete booking", "error");
+    window.location.href = "login.html";
+    return;
+  }
+
+  const user = getCurrentUser();
+
+  // Create appointment
+  const appointment = {
+    id: "appt_" + Math.random().toString(36).substr(2, 9),
+    barberId: currentBooking.barberId,
+    barberName: currentBooking.barber.name,
+    customerId: user.id,
+    customerName: user.name,
+    serviceId: currentBooking.serviceId,
+    serviceName: currentBooking.service.name,
+    date: currentBooking.date,
+    time: currentBooking.time,
+    duration: currentBooking.service.duration,
+    price: currentBooking.service.price,
+    status: "confirmed",
+    createdAt: new Date().toISOString(),
+  };
+
+  // Save to localStorage
+  const existingAppointments = localStorage.getItem("appointments");
+  const appointments = existingAppointments
+    ? JSON.parse(existingAppointments)
+    : [];
+  appointments.push(appointment);
+  localStorage.setItem("appointments", JSON.stringify(appointments));
+
+  showToast("Appointment booked successfully!", "success");
+
+  setTimeout(() => {
+    window.location.href = "customer-dashboard.html";
+  }, 1500);
+}
+
+// ========================================
+// CUSTOMER DASHBOARD
+// ========================================
+
+async function loadCustomerDashboard() {
+  await loadData();
+
+  const user = getCurrentUser();
+  document.getElementById("userName").textContent = user.name;
+
+  // Display profile
+  document.getElementById("profileInfo").innerHTML = `
+        <div class="profile-field">
+            <strong>Name:</strong>
+            <span>${user.name}</span>
+        </div>
+        <div class="profile-field">
+            <strong>Email:</strong>
+            <span>${user.email}</span>
+        </div>
+        <div class="profile-field">
+            <strong>Phone:</strong>
+            <span>${user.phone || "Not provided"}</span>
+        </div>
+    `;
+
+  // Get user appointments
+  const userAppointments = appointmentsData.filter(
+    (apt) => apt.customerId === user.id
+  );
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const upcoming = userAppointments.filter(
+    (apt) => new Date(apt.date) >= today
+  );
+  const past = userAppointments.filter((apt) => new Date(apt.date) < today);
+
+  // Display upcoming appointments
+  const upcomingContainer = document.getElementById("upcomingAppointments");
+  if (upcoming.length === 0) {
+    upcomingContainer.innerHTML =
+      '<p style="color: var(--text-secondary);">No upcoming appointments</p>';
+  } else {
+    upcomingContainer.innerHTML = upcoming
+      .map(
+        (apt) => `
+            <div class="appointment-card">
+                <div class="appointment-header">
+                    <div class="appointment-info">
+                        <h5>${apt.barberName}</h5>
+                        <div class="appointment-details">
+                            <p><strong>${apt.serviceName}</strong> - $${
+          apt.price
+        }</p>
+                            <p>📅 ${formatDate(apt.date)} at ${apt.time}</p>
+                            <p>⏱ Duration: ${apt.duration} minutes</p>
+                        </div>
+                    </div>
+                    <div class="appointment-actions">
+                        <button class="btn-danger" onclick="cancelAppointment('${
+                          apt.id
+                        }')">
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `
+      )
+      .join("");
+  }
+
+  // Display past appointments
+  const pastContainer = document.getElementById("pastAppointments");
+  if (past.length === 0) {
+    pastContainer.innerHTML =
+      '<p style="color: var(--text-secondary);">No past appointments</p>';
+  } else {
+    pastContainer.innerHTML = past
+      .map(
+        (apt) => `
+            <div class="appointment-card past">
+                <div class="appointment-info">
+                    <h5>${apt.barberName}</h5>
+                    <div class="appointment-details">
+                        <p><strong>${apt.serviceName}</strong> - $${
+          apt.price
+        }</p>
+                        <p>📅 ${formatDate(apt.date)} at ${apt.time}</p>
+                    </div>
+                </div>
+            </div>
+        `
+      )
+      .join("");
+  }
+}
+
+function cancelAppointment(appointmentId) {
+  if (!confirm("Are you sure you want to cancel this appointment?")) {
+    return;
+  }
+
+  // Remove from localStorage
+  const appointments = JSON.parse(localStorage.getItem("appointments") || "[]");
+  const filtered = appointments.filter((apt) => apt.id !== appointmentId);
+  localStorage.setItem("appointments", JSON.stringify(filtered));
+
+  showToast("Appointment cancelled", "success");
+
+  // Reload dashboard
+  setTimeout(() => {
+    location.reload();
+  }, 1000);
+}
+
+function toggleEditProfile() {
+  showToast("Profile editing feature coming soon!", "warning");
+}
+
+// ========================================
+// BARBER DASHBOARD
+// ========================================
+
+let currentView = "list";
+let currentWeekStart = new Date();
+
+async function loadBarberDashboard() {
+  await loadData();
+
+  const user = getCurrentUser();
+  document.getElementById("barberName").textContent = user.name;
+
+  // Get barber's appointments (using first barber for demo)
+  const barberAppointments = appointmentsData.filter(
+    (apt) => apt.barberId === "1"
+  );
+
+  // Calculate stats
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const todayAppts = barberAppointments.filter(
+    (apt) => apt.date === today.toISOString().split("T")[0]
+  );
+  const upcomingAppts = barberAppointments.filter(
+    (apt) => new Date(apt.date) >= today
+  );
+
+  const thisMonth = today.getMonth();
+  const monthAppts = barberAppointments.filter(
+    (apt) => new Date(apt.date).getMonth() === thisMonth
+  );
+
+  const totalRevenue = monthAppts.reduce((sum, apt) => sum + apt.price, 0);
+
+  // Update stats
+  document.getElementById("todayCount").textContent = todayAppts.length;
+  document.getElementById("upcomingCount").textContent = upcomingAppts.length;
+  document.getElementById("monthCount").textContent = monthAppts.length;
+  document.getElementById("revenueCount").textContent = "$" + totalRevenue;
+
+  // Display appointments list
+  displayAppointmentsList(barberAppointments);
+
+  // Load services
+  const barber = barbersData[0]; // Demo barber
+  displayBarberServices(barber.services);
+  displayWorkingHours(barber.workingHours);
+}
+
+function displayAppointmentsList(appointments) {
+  const container = document.getElementById("appointmentsList");
+
+  if (appointments.length === 0) {
+    container.innerHTML =
+      '<p style="color: var(--text-secondary);">No appointments found</p>';
+    return;
+  }
+
+  const sorted = appointments.sort((a, b) => {
+    const dateA = new Date(a.date + " " + a.time);
+    const dateB = new Date(b.date + " " + b.time);
+    return dateA - dateB;
+  });
+
+  container.innerHTML = sorted
+    .map(
+      (apt) => `
+        <div class="appointment-card">
+            <div class="appointment-header">
+                <div class="appointment-info">
+                    <h5>${apt.customerName}</h5>
+                    <div class="appointment-details">
+                        <p><strong>${apt.serviceName}</strong> - $${
+        apt.price
+      }</p>
+                        <p>📅 ${formatDate(apt.date)} at ${apt.time}</p>
+                        <p>⏱ Duration: ${apt.duration} minutes</p>
+                        <p>Status: <strong>${apt.status}</strong></p>
+                    </div>
+                </div>
+                <div class="appointment-actions">
+                    <button class="btn-success" onclick="markCompleted('${
+                      apt.id
+                    }')">
+                        Complete
+                    </button>
+                </div>
+            </div>
+        </div>
+    `
+    )
+    .join("");
+}
+
+function displayBarberServices(services) {
+  const container = document.getElementById("servicesList");
+
+  container.innerHTML = services
+    .map(
+      (service) => `
+        <div class="service-item">
+            <div class="service-info">
+                <h5>${service.name}</h5>
+                <span class="service-duration">${service.duration} minutes</span>
+            </div>
+            <div class="service-price">$${service.price}</div>
+        </div>
+    `
+    )
+    .join("");
+}
+
+function displayWorkingHours(hours) {
+  const container = document.getElementById("workingHours");
+
+  container.innerHTML = `
+        <ul class="working-hours-list">
+            ${Object.entries(hours)
+              .map(
+                ([day, time]) => `
+                <li>
+                    <strong>${
+                      day.charAt(0).toUpperCase() + day.slice(1)
+                    }:</strong>
+                    <span>${time}</span>
+                </li>
+            `
+              )
+              .join("")}
+        </ul>
+    `;
+}
+
+function switchView(view) {
+  currentView = view;
+
+  document
+    .getElementById("listViewBtn")
+    .classList.toggle("active", view === "list");
+  document
+    .getElementById("calendarViewBtn")
+    .classList.toggle("active", view === "calendar");
+
+  document.getElementById("listView").style.display =
+    view === "list" ? "block" : "none";
+  document.getElementById("calendarView").style.display =
+    view === "calendar" ? "block" : "none";
+
+  if (view === "calendar") {
+    renderCalendar();
+  }
+}
+
+function renderCalendar() {
+  // Simplified calendar view showing week view
+  const weekDisplay = document.getElementById("weekDisplay");
+  const calendarGrid = document.getElementById("calendarGrid");
+
+  const weekStart = new Date(currentWeekStart);
+  weekStart.setDate(weekStart.getDate() - weekStart.getDay()); // Start from Sunday
+
+  weekDisplay.textContent = `Week of ${formatDate(
+    weekStart.toISOString().split("T")[0]
+  )}`;
+
+  let html = "";
+  const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+  for (let i = 0; i < 7; i++) {
+    const day = new Date(weekStart);
+    day.setDate(day.getDate() + i);
+    const dateStr = day.toISOString().split("T")[0];
+
+    const dayAppointments = appointmentsData.filter(
+      (apt) => apt.date === dateStr
+    );
+
+    html += `
+            <div class="calendar-day">
+                <div class="calendar-day-header">
+                    ${days[i]} ${day.getDate()}
+                </div>
+                ${dayAppointments
+                  .map(
+                    (apt) => `
+                    <div class="calendar-appointment">
+                        ${apt.time} - ${apt.customerName}
+                    </div>
+                `
+                  )
+                  .join("")}
+            </div>
+        `;
+  }
+
+  calendarGrid.innerHTML = html;
+}
+
+function changeWeek(direction) {
+  currentWeekStart.setDate(currentWeekStart.getDate() + direction * 7);
+  renderCalendar();
+}
+
+function filterAppointmentsByDate() {
+  const date = document.getElementById("filterDate").value;
+  if (!date) return;
+
+  const filtered = appointmentsData.filter((apt) => apt.date === date);
+  displayAppointmentsList(filtered);
+}
+
+function clearDateFilter() {
+  document.getElementById("filterDate").value = "";
+  loadBarberDashboard();
+}
+
+function markCompleted(appointmentId) {
+  showToast("Appointment marked as completed", "success");
+  // In production, this would update the backend
+}
+
+function toggleAddService() {
+  showToast("Add service feature coming soon!", "warning");
+}
+
+// ========================================
+// UTILITY FUNCTIONS
+// ========================================
+
+function formatDate(dateStr) {
+  const date = new Date(dateStr);
+  const options = { year: "numeric", month: "long", day: "numeric" };
+  return date.toLocaleDateString("en-US", options);
+}
+
+function showToast(message, type = "info") {
+  // Remove existing toasts
+  const existingToast = document.querySelector(".toast");
+  if (existingToast) {
+    existingToast.remove();
+  }
+
+  // Create new toast
+  const toast = document.createElement("div");
+  toast.className = `toast ${type}`;
+  toast.textContent = message;
+
+  document.body.appendChild(toast);
+
+  // Auto remove after 3 seconds
+  setTimeout(() => {
+    toast.remove();
+  }, 3000);
+}
+
+// Initialize on page load
+document.addEventListener("DOMContentLoaded", () => {
+  // Add enter key listener for search
+  const searchInput = document.getElementById("searchInput");
+  if (searchInput) {
+    searchInput.addEventListener("keypress", (e) => {
+      if (e.key === "Enter") {
+        searchBarbers();
+      }
+    });
+  }
+});
