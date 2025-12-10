@@ -118,11 +118,13 @@ describe("Auth API Tests", () => {
 
   describe("GET /api/auth/me", () => {
     let token;
+    let testEmail;
 
     beforeAll(async () => {
+      testEmail = `metest${Date.now()}@test.com`;
       const response = await request(app).post("/api/auth/register").send({
         name: "Me Test User",
-        email: "metest@test.com",
+        email: testEmail,
         password: "password123",
       });
 
@@ -136,7 +138,7 @@ describe("Auth API Tests", () => {
 
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
-      expect(response.body.data.email).toBe("metest@test.com");
+      expect(response.body.data.email).toBe(testEmail);
     });
 
     it("should fail without token", async () => {
