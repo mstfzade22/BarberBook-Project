@@ -2,7 +2,6 @@
 node_modules/
 
 # Environment variables
-.env
 
 # Logs
 logs/
@@ -19,6 +18,3 @@ Thumbs.db
 .vscode/
 .idea/
 
-# Data files (optional - remove if you want to commit sample data)
-src/data/*.json
-!src/data/*.example.json
