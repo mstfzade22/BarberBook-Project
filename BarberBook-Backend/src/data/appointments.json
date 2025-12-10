@@ -1,0 +1,15 @@
+[
+  {
+    "id": "appt_1765273234687_myp041o3h",
+    "barberId": "1",
+    "customerId": "user_1",
+    "serviceId": "s2",
+    "date": "2025-12-11",
+    "time": "11:00",
+    "duration": 45,
+    "price": 35,
+    "notes": "",
+    "status": "confirmed",
+    "createdAt": "2025-12-09T09:40:34.687Z"
+  }
+]

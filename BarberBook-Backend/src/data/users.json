@@ -1,0 +1,51 @@
+[
+  {
+    "id": "user_1",
+    "name": "Demo Customer",
+    "email": "demo@customer.com",
+    "passwordHash": "$2a$10$WJe9r4ylh1yaxSgmX.DxdOFC4ZM7Mbp2vnjTDOE3P4q8eFZ1RNC1C",
+    "phone": "+1 234 567 8900",
+    "role": "customer",
+    "createdAt": "2025-12-01T10:00:00.000Z"
+  },
+  {
+    "id": "user_2",
+    "name": "Luiz Inácio Lula da Silva",
+    "email": "luiz@barberbook.com",
+    "passwordHash": "$2a$10$WJe9r4ylh1yaxSgmX.DxdOFC4ZM7Mbp2vnjTDOE3P4q8eFZ1RNC1C",
+    "phone": "+1 234 567 8901",
+    "role": "barber",
+    "barberId": "1",
+    "createdAt": "2025-11-15T08:00:00.000Z"
+  },
+  {
+    "id": "user_3",
+    "name": "Neymar da Silva Santos Júnior",
+    "email": "neymar@barberbook.com",
+    "passwordHash": "$2a$10$WJe9r4ylh1yaxSgmX.DxdOFC4ZM7Mbp2vnjTDOE3P4q8eFZ1RNC1C",
+    "phone": "+1 234 567 8902",
+    "role": "barber",
+    "barberId": "2",
+    "createdAt": "2025-11-16T08:00:00.000Z"
+  },
+  {
+    "id": "user_4",
+    "name": "Pelé",
+    "email": "pele@barberbook.com",
+    "passwordHash": "$2a$10$WJe9r4ylh1yaxSgmX.DxdOFC4ZM7Mbp2vnjTDOE3P4q8eFZ1RNC1C",
+    "phone": "+1 234 567 8903",
+    "role": "barber",
+    "barberId": "3",
+    "createdAt": "2025-11-17T08:00:00.000Z"
+  },
+  {
+    "id": "user_5",
+    "name": "Igor Santos Peretta",
+    "email": "igor@barberbook.com",
+    "passwordHash": "$2a$10$WJe9r4ylh1yaxSgmX.DxdOFC4ZM7Mbp2vnjTDOE3P4q8eFZ1RNC1C",
+    "phone": "+994 55 667 78 85",
+    "role": "barber",
+    "barberId": "4",
+    "createdAt": "2025-11-17T08:00:00.000Z"
+  }
+]
