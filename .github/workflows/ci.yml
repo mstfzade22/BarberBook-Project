@@ -29,8 +29,17 @@ jobs:
       working-directory: ./BarberBook-Backend
       run: npm ci
     
+    - name: Start MongoDB
+      uses: supercharge/mongodb-github-action@1.10.0
+      with:
+        mongodb-version: '7.0'
+    
     - name: Run tests
       working-directory: ./BarberBook-Backend
+      env:
+        MONGODB_URI: mongodb://localhost:27017/barberbook_test
+        JWT_SECRET: test_secret_key_for_ci
+        NODE_ENV: test
       run: npm test
     
     - name: Upload coverage reports
