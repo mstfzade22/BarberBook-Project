@@ -37,10 +37,7 @@ describe("Barber API Tests", () => {
       ],
       availability: [
         { dayOfWeek: 1, startTime: "09:00", endTime: "17:00" }
-      ],
-      workingHours: {
-        monday: { isOpen: true, start: "09:00", end: "17:00" }
-      }
+      ]
     });
     testBarberId = testBarber._id.toString();
   });
@@ -62,7 +59,7 @@ describe("Barber API Tests", () => {
       expect(response.body.data.length).toBeGreaterThan(0);
       expect(response.body.data[0]).toHaveProperty("name");
       expect(response.body.data[0]).toHaveProperty("services");
-      expect(response.body.data[0]).toHaveProperty("workingHours");
+      expect(response.body.data[0]).toHaveProperty("availability");
     });
   });
 
