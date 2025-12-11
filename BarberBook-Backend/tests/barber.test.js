@@ -1,13 +1,20 @@
 const request = require("supertest");
 const createApp = require("../src/app");
+const connectDB = require("../src/config/database");
 const dataStore = require("../src/services/dataStore");
+const mongoose = require("mongoose");
 
 let app;
 
 describe("Barber API Tests", () => {
   beforeAll(async () => {
+    await connectDB();
     await dataStore.initialize();
     app = createApp();
+  });
+
+  afterAll(async () => {
+    await mongoose.connection.close();
   });
 
   describe("GET /api/barbers", () => {

@@ -24,7 +24,11 @@ const connectDB = async () => {
     return conn;
   } catch (error) {
     console.error('❌ MongoDB connection failed:', error.message);
-    process.exit(1);
+    // Only exit in production, allow tests to handle the error
+    if (process.env.NODE_ENV !== 'test') {
+      process.exit(1);
+    }
+    throw error;
   }
 };
 
