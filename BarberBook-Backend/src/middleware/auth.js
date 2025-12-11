@@ -22,14 +22,14 @@ const authenticate = async (req, res, next) => {
       );
     }
 
-    const user = dataStore.findUserById(decoded.userId);
+    const user = await dataStore.findUserById(decoded.userId);
 
     if (!user) {
       return errorResponse(res, 401, "User not found.");
     }
 
     req.user = {
-      id: user.id,
+      id: user._id ? user._id.toString() : user.id,
       email: user.email,
       name: user.name,
       role: user.role,

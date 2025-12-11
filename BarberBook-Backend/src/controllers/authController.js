@@ -7,7 +7,7 @@ const register = async (req, res) => {
   try {
     const { name, email, password, phone, role } = req.body;
 
-    const existingUser = dataStore.findUserByEmail(email);
+    const existingUser = await dataStore.findUserByEmail(email);
     if (existingUser) {
       return errorResponse(res, 400, "User with this email already exists");
     }
@@ -24,12 +24,11 @@ const register = async (req, res) => {
 
     const user = await dataStore.createUser(userData);
 
-    const token = generateToken(user.id, user.role);
+    const token = generateToken(user._id, user.role);
 
-    const { passwordHash: _, ...userWithoutPassword } = user;
-
+    // passwordHash already removed by dataStore.createUser
     return successResponse(res, 201, "User registered successfully", {
-      user: userWithoutPassword,
+      user,
       token,
     });
   } catch (error) {
@@ -42,7 +41,7 @@ const login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    const user = dataStore.findUserByEmail(email);
+    const user = await dataStore.findUserByEmail(email);
     if (!user) {
       return errorResponse(res, 401, "Invalid email or password");
     }
@@ -52,12 +51,14 @@ const login = async (req, res) => {
       return errorResponse(res, 401, "Invalid email or password");
     }
 
-    const token = generateToken(user.id, user.role);
+    const token = generateToken(user._id.toString(), user.role);
 
-    const { passwordHash, ...userWithoutPassword } = user;
+    // Convert Mongoose document to plain object and remove passwordHash
+    const userObject = user.toObject();
+    delete userObject.passwordHash;
 
     return successResponse(res, 200, "Login successful", {
-      user: userWithoutPassword,
+      user: userObject,
       token,
     });
   } catch (error) {
@@ -68,19 +69,20 @@ const login = async (req, res) => {
 
 const getMe = async (req, res) => {
   try {
-    const user = dataStore.findUserById(req.user.id);
+    const user = await dataStore.findUserById(req.user.id);
 
     if (!user) {
       return errorResponse(res, 404, "User not found");
     }
 
-    const { passwordHash, ...userWithoutPassword } = user;
+    // Convert to plain object, passwordHash already excluded by select
+    const userObject = user.toObject();
 
     return successResponse(
       res,
       200,
       "User retrieved successfully",
-      userWithoutPassword
+      userObject
     );
   } catch (error) {
     console.error("GetMe error:", error);

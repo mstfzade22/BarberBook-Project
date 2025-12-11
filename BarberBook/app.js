@@ -308,20 +308,20 @@ function displayBarbers(barbers) {
     .map(
       (barber) => `
         <div class="barber-card" onclick="window.location.href='barber.html?id=${
-          barber.id
+          barber._id || barber.id
         }'">
-            <img src="${barber.photo}" alt="${barber.name}">
+            <img src="${barber.profileImage || barber.photo}" alt="${barber.name}" onerror="this.src='https://via.placeholder.com/300x200?text=Barber'">
             <div class="barber-card-content">
                 <h4>${barber.name}</h4>
                 <div class="barber-rating">
                     <span>⭐ ${barber.rating}</span>
-                    <span>(${barber.totalReviews} reviews)</span>
+                    <span>(${barber.experience || barber.totalReviews || 0} years experience)</span>
                 </div>
                 <div class="barber-services">
                     ${barber.services.map((s) => s.name).join(", ")}
                 </div>
                 <div class="barber-location">
-                    📍 ${barber.location}
+                    📍 ${barber.specialization || barber.location || 'Professional Barber'}
                 </div>
             </div>
         </div>
@@ -380,19 +380,58 @@ async function loadBarberProfile(barberId) {
     return;
   }
 
+  const barberProfileId = barber._id || barber.id;
+  const workingHoursSection = barber.workingHours ? `
+    <div class="detail-card">
+      <h4>Working Hours</h4>
+      <ul class="working-hours-list">
+        ${Object.entries(barber.workingHours)
+          .map(
+            ([day, hours]) => `
+          <li>
+            <strong>${day.charAt(0).toUpperCase() + day.slice(1)}:</strong>
+            <span>${hours}</span>
+          </li>
+        `
+          )
+          .join("")}
+      </ul>
+    </div>
+  ` : `
+    <div class="detail-card">
+      <h4>Experience</h4>
+      <p>${barber.experience || 5} years of professional experience</p>
+    </div>
+  `;
+
+  const gallerySection = barber.gallery && barber.gallery.length > 0 ? `
+    <div class="detail-card" style="margin-top: 2rem;">
+      <h4>Gallery</h4>
+      <div class="gallery-grid">
+        ${barber.gallery
+          .map(
+            (img) => `
+          <img src="${img}" alt="Work sample">
+        `
+          )
+          .join("")}
+      </div>
+    </div>
+  ` : '';
+
   document.getElementById("barberProfile").innerHTML = `
     <div class="profile-header">
-      <img src="${barber.photo}" alt="${barber.name}" class="profile-photo">
+      <img src="${barber.profileImage || barber.photo}" alt="${barber.name}" class="profile-photo" onerror="this.src='https://via.placeholder.com/300x400?text=Barber'">
       <div class="profile-info">
         <h2>${barber.name}</h2>
         <div class="barber-rating">
           <span>⭐ ${barber.rating}</span>
-          <span>(${barber.totalReviews} reviews)</span>
+          <span>(${barber.experience || barber.totalReviews || 0} years experience)</span>
         </div>
-        <p>${barber.bio}</p>
-        <div class="barber-location">📍 ${barber.location}</div>
+        <p>${barber.bio || barber.specialization}</p>
+        <div class="barber-location">📍 ${barber.specialization || barber.location || 'Professional Barber Services'}</div>
         <button onclick="window.location.href='booking.html?barberId=${
-          barber.id
+          barberProfileId
         }'" 
                 class="btn-primary" style="margin-top: 1rem;">
           Book Appointment
@@ -420,43 +459,10 @@ async function loadBarberProfile(barberId) {
         </div>
       </div>
       
-      <div class="detail-card">
-        <h4>Working Hours</h4>
-        <ul class="working-hours-list">
-          ${Object.entries(barber.workingHours)
-            .map(
-              ([day, hours]) => `
-            <li>
-              <strong>${day.charAt(0).toUpperCase() + day.slice(1)}:</strong>
-              <span>${hours}</span>
-            </li>
-          `
-            )
-            .join("")}
-        </ul>
-      </div>
+      ${workingHoursSection}
     </div>
     
-    <div class="detail-card" style="margin-top: 2rem;">
-      <h4>Gallery</h4>
-      <div class="gallery-grid">
-        ${barber.gallery
-          .map(
-            (img) => `
-          <img src="${img}" alt="Work sample">
-        `
-          )
-          .join("")}
-      </div>
-    </div>
-    
-    <div class="detail-card" style="margin-top: 2rem;">
-      <h4>Location</h4>
-      <div class="map-placeholder">
-        📍 Map view: ${barber.location}<br>
-        <small>(In production, this would show Google Maps integration)</small>
-      </div>
-    </div>
+    ${gallerySection}
   `;
 }
 
@@ -473,7 +479,7 @@ async function initializeBooking(barberId) {
 
   document.getElementById("barberInfo").innerHTML = `
     <h4>${barber.name}</h4>
-    <p>${barber.location}</p>
+    <p>${barber.specialization || barber.location || 'Professional Barber'}</p>
   `;
 
   document.getElementById("servicesList").innerHTML = barber.services
@@ -770,13 +776,13 @@ async function loadCustomerDashboard() {
           <div class="appointment-info">
             <h5>${apt.barberName}</h5>
             <div class="appointment-details">
-              <p><strong>${apt.serviceId}</strong> - $${apt.price}</p>
+              <p><strong>${apt.serviceName || apt.serviceId}</strong> - $${apt.price}</p>
               <p>📅 ${formatDate(apt.date)} at ${apt.time}</p>
               <p>⏱ Duration: ${apt.duration} minutes</p>
             </div>
           </div>
           <div class="appointment-actions">
-            <button class="btn-danger" onclick="cancelAppointment('${apt.id}')">
+            <button class="btn-danger" onclick="cancelAppointment('${apt.id || apt._id}')">
               Cancel
             </button>
           </div>
@@ -799,7 +805,7 @@ async function loadCustomerDashboard() {
         <div class="appointment-info">
           <h5>${apt.barberName}</h5>
           <div class="appointment-details">
-            <p><strong>${apt.serviceId}</strong> - $${apt.price}</p>
+            <p><strong>${apt.serviceName || apt.serviceId}</strong> - $${apt.price}</p>
             <p>📅 ${formatDate(apt.date)} at ${apt.time}</p>
           </div>
         </div>

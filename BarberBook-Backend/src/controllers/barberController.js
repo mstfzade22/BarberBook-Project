@@ -3,7 +3,7 @@ const { successResponse, errorResponse } = require("../utils/response");
 
 const getAllBarbers = async (req, res) => {
   try {
-    const barbers = dataStore.getAllBarbers();
+    const barbers = await dataStore.getAllBarbers();
 
     return successResponse(res, 200, "Barbers retrieved successfully", barbers);
   } catch (error) {
@@ -15,7 +15,7 @@ const getAllBarbers = async (req, res) => {
 const getBarberById = async (req, res) => {
   try {
     const { id } = req.params;
-    const barber = dataStore.findBarberById(id);
+    const barber = await dataStore.findBarberById(id);
 
     if (!barber) {
       return errorResponse(res, 404, "Barber not found");
@@ -37,12 +37,12 @@ const getBarberAvailability = async (req, res) => {
       return errorResponse(res, 400, "Date parameter is required");
     }
 
-    const barber = dataStore.findBarberById(id);
+    const barber = await dataStore.findBarberById(id);
     if (!barber) {
       return errorResponse(res, 404, "Barber not found");
     }
 
-    const appointments = dataStore.findAppointmentsByDateAndBarber(date, id);
+    const appointments = await dataStore.findAppointmentsByDateAndBarber(date, id);
 
     const bookedSlots = appointments
       .filter((apt) => apt.status !== "cancelled")
@@ -51,10 +51,21 @@ const getBarberAvailability = async (req, res) => {
         duration: apt.duration,
       }));
 
+    // Default working hours if not set in database
+    const defaultWorkingHours = {
+      monday: "09:00-18:00",
+      tuesday: "09:00-18:00",
+      wednesday: "09:00-18:00",
+      thursday: "09:00-18:00",
+      friday: "09:00-20:00",
+      saturday: "10:00-17:00",
+      sunday: "Closed"
+    };
+
     return successResponse(res, 200, "Availability retrieved successfully", {
       barberId: id,
       date,
-      workingHours: barber.workingHours,
+      workingHours: barber.workingHours || defaultWorkingHours,
       bookedSlots,
     });
   } catch (error) {

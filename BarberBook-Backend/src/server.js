@@ -1,11 +1,13 @@
 require("dotenv").config();
 const createApp = require("./app");
+const connectDB = require("./config/database");
 const dataStore = require("./services/dataStore");
 
 const PORT = process.env.PORT || 5000;
 
 const startServer = async () => {
   try {
+    await connectDB();
     await dataStore.initialize();
 
     const app = createApp();

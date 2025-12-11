@@ -1,179 +1,126 @@
-const fs = require("fs").promises;
-const path = require("path");
+const User = require("../models/User");
+const Barber = require("../models/Barber");
+const Appointment = require("../models/Appointment");
 
 class DataStore {
   constructor() {
-    this.dataDir = path.join(__dirname, "../data");
-    this.users = [];
-    this.barbers = [];
-    this.appointments = [];
     this.initialized = false;
   }
 
   async initialize() {
     if (this.initialized) return;
-
-    try {
-      await this.loadUsers();
-      await this.loadBarbers();
-      await this.loadAppointments();
-      this.initialized = true;
-      console.log("✅ DataStore initialized successfully");
-    } catch (error) {
-      console.error("❌ Error initializing DataStore:", error);
-      throw error;
-    }
+    this.initialized = true;
+    console.log("✅ MongoDB DataStore initialized successfully");
   }
 
-  async loadUsers() {
-    const filePath = path.join(this.dataDir, "users.json");
-    try {
-      const data = await fs.readFile(filePath, "utf8");
-      this.users = JSON.parse(data);
-    } catch (error) {
-      console.warn("Users file not found, initializing empty array");
-      this.users = [];
-      await this.saveUsers();
-    }
+  async getAllUsers() {
+    return await User.find().select("-passwordHash");
   }
 
-  async loadBarbers() {
-    const filePath = path.join(this.dataDir, "barbers.json");
-    try {
-      const data = await fs.readFile(filePath, "utf8");
-      this.barbers = JSON.parse(data);
-    } catch (error) {
-      console.warn("Barbers file not found, initializing empty array");
-      this.barbers = [];
-      await this.saveBarbers();
-    }
+  async findUserById(id) {
+    return await User.findById(id).select("-passwordHash");
   }
 
-  async loadAppointments() {
-    const filePath = path.join(this.dataDir, "appointments.json");
-    try {
-      const data = await fs.readFile(filePath, "utf8");
-      this.appointments = JSON.parse(data);
-    } catch (error) {
-      console.warn("Appointments file not found, initializing empty array");
-      this.appointments = [];
-      await this.saveAppointments();
-    }
-  }
-
-  async saveUsers() {
-    const filePath = path.join(this.dataDir, "users.json");
-    await fs.writeFile(filePath, JSON.stringify(this.users, null, 2), "utf8");
-  }
-
-  async saveBarbers() {
-    const filePath = path.join(this.dataDir, "barbers.json");
-    await fs.writeFile(filePath, JSON.stringify(this.barbers, null, 2), "utf8");
-  }
-
-  async saveAppointments() {
-    const filePath = path.join(this.dataDir, "appointments.json");
-    await fs.writeFile(
-      filePath,
-      JSON.stringify(this.appointments, null, 2),
-      "utf8"
-    );
-  }
-
-  getAllUsers() {
-    return this.users;
-  }
-
-  findUserById(id) {
-    return this.users.find((user) => user.id === id);
-  }
-
-  findUserByEmail(email) {
-    return this.users.find(
-      (user) => user.email.toLowerCase() === email.toLowerCase()
-    );
+  async findUserByEmail(email) {
+    return await User.findOne({ email: email.toLowerCase() });
   }
 
   async createUser(userData) {
-    const newUser = {
-      id: `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+    const newUser = new User({
       ...userData,
-      createdAt: new Date().toISOString(),
-    };
-    this.users.push(newUser);
-    await this.saveUsers();
-    return newUser;
+      email: userData.email.toLowerCase(),
+    });
+    await newUser.save();
+    const userObj = newUser.toObject();
+    delete userObj.passwordHash;
+    return userObj;
   }
 
   async updateUser(id, updates) {
-    const index = this.users.findIndex((user) => user.id === id);
-    if (index === -1) return null;
-
-    this.users[index] = { ...this.users[index], ...updates };
-    await this.saveUsers();
-    return this.users[index];
+    const user = await User.findByIdAndUpdate(
+      id,
+      { $set: updates },
+      { new: true, runValidators: true }
+    ).select("-passwordHash");
+    return user;
   }
 
   async deleteUser(id) {
-    const index = this.users.findIndex((user) => user.id === id);
-    if (index === -1) return false;
-
-    this.users.splice(index, 1);
-    await this.saveUsers();
-    return true;
+    const result = await User.findByIdAndDelete(id);
+    return result !== null;
   }
 
-  getAllBarbers() {
-    return this.barbers;
+  async getAllBarbers() {
+    return await Barber.find().populate("userId", "name email phone");
   }
 
-  findBarberById(id) {
-    return this.barbers.find((barber) => barber.id === id);
+  async findBarberById(id) {
+    return await Barber.findById(id).populate("userId", "name email phone");
+  }
+
+  async findBarberByUserId(userId) {
+    return await Barber.findOne({ userId }).populate("userId", "name email phone");
   }
 
   async createBarber(barberData) {
-    const newBarber = {
-      id: `${Date.now()}`,
-      ...barberData,
-    };
-    this.barbers.push(newBarber);
-    await this.saveBarbers();
-    return newBarber;
+    const newBarber = new Barber(barberData);
+    await newBarber.save();
+    return newBarber.populate("userId", "name email phone");
   }
 
   async updateBarber(id, updates) {
-    const index = this.barbers.findIndex((barber) => barber.id === id);
-    if (index === -1) return null;
-
-    this.barbers[index] = { ...this.barbers[index], ...updates };
-    await this.saveBarbers();
-    return this.barbers[index];
+    const barber = await Barber.findByIdAndUpdate(
+      id,
+      { $set: updates },
+      { new: true, runValidators: true }
+    ).populate("userId", "name email phone");
+    return barber;
   }
 
-  getAllAppointments() {
-    return this.appointments;
+  async getAllAppointments() {
+    return await Appointment.find()
+      .populate("customerId", "name email phone")
+      .populate("barberId", "name specialization profileImage");
   }
 
-  findAppointmentById(id) {
-    return this.appointments.find((apt) => apt.id === id);
+  async findAppointmentById(id) {
+    return await Appointment.findById(id)
+      .populate("customerId", "name email phone")
+      .populate("barberId", "name specialization profileImage");
   }
 
-  findAppointmentsByCustomerId(customerId) {
-    return this.appointments.filter((apt) => apt.customerId === customerId);
+  async findAppointmentsByCustomerId(customerId) {
+    return await Appointment.find({ customerId })
+      .populate("customerId", "name email phone")
+      .populate("barberId", "name specialization profileImage services")
+      .sort({ date: -1, time: -1 });
   }
 
-  findAppointmentsByBarberId(barberId) {
-    return this.appointments.filter((apt) => apt.barberId === barberId);
+  async findAppointmentsByBarberId(barberId) {
+    return await Appointment.find({ barberId })
+      .populate("customerId", "name email phone")
+      .populate("barberId", "name specialization profileImage services")
+      .sort({ date: -1, time: -1 });
   }
 
-  findAppointmentsByDateAndBarber(date, barberId) {
-    return this.appointments.filter(
-      (apt) => apt.date === date && apt.barberId === barberId
-    );
+  async findAppointmentsByDateAndBarber(date, barberId) {
+    const startOfDay = new Date(date);
+    startOfDay.setHours(0, 0, 0, 0);
+    
+    const endOfDay = new Date(date);
+    endOfDay.setHours(23, 59, 59, 999);
+
+    return await Appointment.find({
+      barberId,
+      date: {
+        $gte: startOfDay,
+        $lte: endOfDay
+      }
+    });
   }
 
-  isTimeSlotAvailable(barberId, date, time, duration) {
-    const existingAppointments = this.findAppointmentsByDateAndBarber(
+  async isTimeSlotAvailable(barberId, date, time, duration) {
+    const existingAppointments = await this.findAppointmentsByDateAndBarber(
       date,
       barberId
     );
@@ -202,7 +149,7 @@ class DataStore {
   }
 
   async createAppointment(appointmentData) {
-    const isAvailable = this.isTimeSlotAvailable(
+    const isAvailable = await this.isTimeSlotAvailable(
       appointmentData.barberId,
       appointmentData.date,
       appointmentData.time,
@@ -213,25 +160,27 @@ class DataStore {
       throw new Error("Time slot is not available");
     }
 
-    const newAppointment = {
-      id: `appt_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+    const newAppointment = new Appointment({
       ...appointmentData,
       status: "confirmed",
-      createdAt: new Date().toISOString(),
-    };
+    });
 
-    this.appointments.push(newAppointment);
-    await this.saveAppointments();
-    return newAppointment;
+    await newAppointment.save();
+    return newAppointment.populate([
+      { path: "customerId", select: "name email phone" },
+      { path: "barberId", select: "name email phone" }
+    ]);
   }
 
   async updateAppointment(id, updates) {
-    const index = this.appointments.findIndex((apt) => apt.id === id);
-    if (index === -1) return null;
-
-    this.appointments[index] = { ...this.appointments[index], ...updates };
-    await this.saveAppointments();
-    return this.appointments[index];
+    const appointment = await Appointment.findByIdAndUpdate(
+      id,
+      { $set: updates },
+      { new: true, runValidators: true }
+    )
+      .populate("customerId", "name email phone")
+      .populate("barberId", "name email phone");
+    return appointment;
   }
 
   async cancelAppointment(id) {
@@ -239,12 +188,8 @@ class DataStore {
   }
 
   async deleteAppointment(id) {
-    const index = this.appointments.findIndex((apt) => apt.id === id);
-    if (index === -1) return false;
-
-    this.appointments.splice(index, 1);
-    await this.saveAppointments();
-    return true;
+    const result = await Appointment.findByIdAndDelete(id);
+    return result !== null;
   }
 }
 

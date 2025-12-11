@@ -7,7 +7,7 @@ const createAppointment = async (req, res) => {
       req.body;
     const customerId = req.user.id;
 
-    const barber = dataStore.findBarberById(barberId);
+    const barber = await dataStore.findBarberById(barberId);
     if (!barber) {
       return errorResponse(res, 404, "Barber not found");
     }
@@ -52,23 +52,38 @@ const getAppointments = async (req, res) => {
     let appointments;
 
     if (req.user.role === "customer") {
-      appointments = dataStore.findAppointmentsByCustomerId(req.user.id);
+      appointments = await dataStore.findAppointmentsByCustomerId(req.user.id);
     } else if (req.user.role === "barber") {
-      appointments = dataStore.findAppointmentsByBarberId(req.user.barberId);
+      appointments = await dataStore.findAppointmentsByBarberId(req.user.barberId);
     } else {
       return errorResponse(res, 403, "Invalid user role");
     }
 
     const enrichedAppointments = appointments.map((apt) => {
-      const barber = dataStore.findBarberById(apt.barberId);
-      const customer = dataStore.findUserById(apt.customerId);
+      const aptObj = apt.toObject ? apt.toObject() : apt;
+      
+      // Get barber info from populated barberId
+      const barberInfo = aptObj.barberId;
+      const customerInfo = aptObj.customerId;
+      
+      // Find service name from barber's services array
+      let serviceName = aptObj.serviceId;
+      if (barberInfo && barberInfo.services && Array.isArray(barberInfo.services)) {
+        const service = barberInfo.services.find(s => s.id === aptObj.serviceId);
+        if (service) {
+          serviceName = service.name;
+        }
+      }
 
       return {
-        ...apt,
-        barberName: barber ? barber.name : "Unknown",
-        customerName: customer ? customer.name : "Unknown",
-        customerEmail: customer ? customer.email : "",
-        customerPhone: customer ? customer.phone : "",
+        ...aptObj,
+        id: aptObj._id ? aptObj._id.toString() : aptObj.id, // Add id for frontend compatibility
+        barberName: barberInfo && barberInfo.name ? barberInfo.name : "Unknown",
+        barberSpecialization: barberInfo && barberInfo.specialization ? barberInfo.specialization : "",
+        serviceName: serviceName,
+        customerName: customerInfo && customerInfo.name ? customerInfo.name : "Unknown",
+        customerEmail: customerInfo && customerInfo.email ? customerInfo.email : "",
+        customerPhone: customerInfo && customerInfo.phone ? customerInfo.phone : "",
       };
     });
 
@@ -87,30 +102,33 @@ const getAppointments = async (req, res) => {
 const getAppointmentById = async (req, res) => {
   try {
     const { id } = req.params;
-    const appointment = dataStore.findAppointmentById(id);
+    const appointment = await dataStore.findAppointmentById(id);
 
     if (!appointment) {
       return errorResponse(res, 404, "Appointment not found");
     }
 
+    const aptObj = appointment.toObject ? appointment.toObject() : appointment;
+    const customerIdStr = aptObj.customerId._id ? aptObj.customerId._id.toString() : aptObj.customerId.toString();
+    const barberIdStr = aptObj.barberId._id ? aptObj.barberId._id.toString() : (aptObj.barberId ? aptObj.barberId.toString() : null);
+
     if (
-      (req.user.role === "customer" &&
-        appointment.customerId !== req.user.id) ||
-      (req.user.role === "barber" && appointment.barberId !== req.user.barberId)
+      (req.user.role === "customer" && customerIdStr !== req.user.id) ||
+      (req.user.role === "barber" && barberIdStr !== req.user.barberId)
     ) {
       return errorResponse(res, 403, "Not authorized to view this appointment");
     }
 
-    const barber = dataStore.findBarberById(appointment.barberId);
-    const customer = dataStore.findUserById(appointment.customerId);
+    const barberInfo = aptObj.barberId;
+    const customerInfo = aptObj.customerId;
 
     const enrichedAppointment = {
-      ...appointment,
-      barberName: barber ? barber.name : "Unknown",
-      barberLocation: barber ? barber.location : "",
-      customerName: customer ? customer.name : "Unknown",
-      customerEmail: customer ? customer.email : "",
-      customerPhone: customer ? customer.phone : "",
+      ...aptObj,
+      barberName: barberInfo && barberInfo.name ? barberInfo.name : "Unknown",
+      barberLocation: barberInfo && barberInfo.specialization ? barberInfo.specialization : "",
+      customerName: customerInfo && customerInfo.name ? customerInfo.name : "Unknown",
+      customerEmail: customerInfo && customerInfo.email ? customerInfo.email : "",
+      customerPhone: customerInfo && customerInfo.phone ? customerInfo.phone : "",
     };
 
     return successResponse(
@@ -130,16 +148,24 @@ const updateAppointment = async (req, res) => {
     const { id } = req.params;
     const { status, notes } = req.body;
 
-    const appointment = dataStore.findAppointmentById(id);
+    const appointment = await dataStore.findAppointmentById(id);
 
     if (!appointment) {
       return errorResponse(res, 404, "Appointment not found");
     }
 
+    // Compare IDs properly (could be ObjectId, populated object, or string)
+    const appointmentCustomerId = appointment.customerId?._id?.toString() || 
+                                   appointment.customerId?.toString() || 
+                                   appointment.customerId;
+    const appointmentBarberId = appointment.barberId?._id?.toString() || 
+                                 appointment.barberId?.toString() || 
+                                 appointment.barberId;
+    
     if (
       (req.user.role === "customer" &&
-        appointment.customerId !== req.user.id) ||
-      (req.user.role === "barber" && appointment.barberId !== req.user.barberId)
+        appointmentCustomerId !== req.user.id) ||
+      (req.user.role === "barber" && appointmentBarberId !== req.user.barberId)
     ) {
       return errorResponse(
         res,
@@ -169,13 +195,17 @@ const updateAppointment = async (req, res) => {
 const deleteAppointment = async (req, res) => {
   try {
     const { id } = req.params;
-    const appointment = dataStore.findAppointmentById(id);
+    const appointment = await dataStore.findAppointmentById(id);
 
     if (!appointment) {
       return errorResponse(res, 404, "Appointment not found");
     }
 
-    if (appointment.customerId !== req.user.id) {
+    // Compare customerId properly (could be ObjectId, populated object, or string)
+    const appointmentCustomerId = appointment.customerId?._id?.toString() || 
+                                   appointment.customerId?.toString() || 
+                                   appointment.customerId;
+    if (appointmentCustomerId !== req.user.id) {
       return errorResponse(
         res,
         403,
@@ -196,7 +226,7 @@ const getAppointmentsCalendar = async (req, res) => {
   try {
     const { startDate, endDate } = req.query;
 
-    const appointments = dataStore.findAppointmentsByBarberId(
+    const appointments = await dataStore.findAppointmentsByBarberId(
       req.user.barberId
     );
 
@@ -208,15 +238,15 @@ const getAppointmentsCalendar = async (req, res) => {
     }
 
     const calendar = {};
-    filteredAppointments.forEach((apt) => {
+    for (const apt of filteredAppointments) {
       if (!calendar[apt.date]) {
         calendar[apt.date] = [];
       }
 
-      const customer = dataStore.findUserById(apt.customerId);
+      const customer = await dataStore.findUserById(apt.customerId);
 
       calendar[apt.date].push({
-        id: apt.id,
+        id: apt._id || apt.id,
         time: apt.time,
         duration: apt.duration,
         customerName: customer ? customer.name : "Unknown",
@@ -225,7 +255,7 @@ const getAppointmentsCalendar = async (req, res) => {
         status: apt.status,
         price: apt.price,
       });
-    });
+    }
 
     return successResponse(
       res,

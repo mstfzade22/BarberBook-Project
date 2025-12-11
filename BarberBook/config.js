@@ -4,8 +4,8 @@
 const API_CONFIG = {
   // Development (local)
   development: {
-    API_URL: "http://localhost:5000",
-    API_BASE: "http://localhost:5000/api",
+    API_URL: "http://localhost:5001",
+    API_BASE: "http://localhost:5001/api",
   },
 
   // Production (Render)
