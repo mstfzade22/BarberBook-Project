@@ -1,7 +1,6 @@
 const express = require("express");
 const cors = require("cors");
 const morgan = require("morgan");
-const path = require("path");
 const authRoutes = require("./routes/authRoutes");
 const barberRoutes = require("./routes/barberRoutes");
 const appointmentRoutes = require("./routes/appointmentRoutes");
@@ -28,24 +27,11 @@ const createApp = () => {
     });
   });
 
-  // API Routes
   app.use("/api/auth", authRoutes);
   app.use("/api/barbers", barberRoutes);
   app.use("/api/appointments", appointmentRoutes);
 
-  // Serve static frontend files in production
-  if (process.env.NODE_ENV === "production") {
-    const frontendPath = path.join(__dirname, "../../public");
-    app.use(express.static(frontendPath));
-
-    // Serve index.html for all non-API routes (SPA support)
-    app.get("*", (req, res) => {
-      res.sendFile(path.join(frontendPath, "index.html"));
-    });
-  } else {
-    app.use(notFound);
-  }
-
+  app.use(notFound);
   app.use(errorHandler);
 
   return app;

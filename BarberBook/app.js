@@ -1,9 +1,4 @@
-// API Base URL - uses relative path in production (same server), localhost in development
-const API_BASE_URL =
-  window.location.hostname === "localhost" ||
-  window.location.hostname === "127.0.0.1"
-    ? "http://localhost:5001/api"
-    : "/api"; // Relative path - frontend and backend served from same domain
+const API_BASE_URL = "http://localhost:5001/api";
 
 function getAuthToken() {
   const user = localStorage.getItem("currentUser");
