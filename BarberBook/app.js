@@ -1,4 +1,5 @@
-const API_BASE_URL = "http://localhost:5001/api";
+// API_BASE_URL is now imported from config.js
+// Use API_BASE from config.js for automatic environment detection
 
 function getAuthToken() {
   const user = localStorage.getItem("currentUser");
@@ -22,7 +23,7 @@ async function apiRequest(endpoint, options = {}) {
   }
 
   try {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+    const response = await fetch(`${API_BASE}${endpoint}`, {
       ...options,
       headers,
     });
