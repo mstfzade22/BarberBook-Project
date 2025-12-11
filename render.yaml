@@ -1,0 +1,52 @@
+services:
+  # Backend API Service (Docker)
+  - type: web
+    name: barberbook-backend
+    env: docker
+    region: oregon
+    plan: free
+    dockerfilePath: ./BarberBook-Backend/Dockerfile
+    dockerContext: ./BarberBook-Backend
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_EXPIRES_IN
+        value: 7d
+      - key: FRONTEND_URL
+        value: https://barberbook-frontend.onrender.com
+    autoDeploy: true
+
+  # Frontend Static Site
+  - type: web
+    name: barberbook-frontend
+    env: static
+    region: oregon
+    plan: free
+    buildCommand: echo "No build needed for static site"
+    staticPublishPath: ./BarberBook
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    headers:
+      - path: /*
+        name: X-Frame-Options
+        value: SAMEORIGIN
+      - path: /*
+        name: X-Content-Type-Options
+        value: nosniff
+      - path: /*
+        name: Referrer-Policy
+        value: strict-origin-when-cross-origin
+    envVars:
+      - key: API_URL
+        fromService:
+          type: web
+          name: barberbook-backend
+          envVarKey: RENDER_EXTERNAL_URL
+    autoDeploy: true
