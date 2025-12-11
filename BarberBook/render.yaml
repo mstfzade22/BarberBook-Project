@@ -1,0 +1,13 @@
+# Render Blueprint for BarberBook Frontend
+# This file is optional but can help with deployment
+
+services:
+  - type: web
+    name: barberbook-frontend
+    env: static
+    buildCommand: ""
+    staticPublishPath: .
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
