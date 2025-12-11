@@ -25,7 +25,6 @@ services:
   - type: web
     name: barberbook-frontend
     env: static
-    plan: free
     buildCommand: echo "No build needed for static site"
     staticPublishPath: ./BarberBook
     routes:
