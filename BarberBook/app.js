@@ -443,7 +443,7 @@ async function loadBarberProfile(barberId) {
           <span>⭐ ${barber.rating}</span>
           <span>(${
             barber.experience || barber.totalReviews || 0
-          } years experience)</span>
+          } reviews)</span>
         </div>
         <p>${barber.bio || barber.specialization}</p>
         <div class="barber-location">📍 ${
