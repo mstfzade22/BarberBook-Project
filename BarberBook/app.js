@@ -893,10 +893,14 @@ async function loadBarberDashboard() {
   document.getElementById("revenueCount").textContent = "$" + totalRevenue;
 
   displayAppointmentsList(appointments);
-  const barber = await fetchBarberById(user.barberId);
+  // Use user's own ID when they are a barber
+  const barberId = user.barberId || user.id || user._id;
+  const barber = await fetchBarberById(barberId);
   if (barber) {
     displayBarberServices(barber.services);
-    displayWorkingHours(barber.workingHours);
+    if (barber.workingHours) {
+      displayWorkingHours(barber.workingHours);
+    }
   }
 }
 
