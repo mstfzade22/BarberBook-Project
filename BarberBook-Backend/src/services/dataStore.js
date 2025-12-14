@@ -59,7 +59,10 @@ class DataStore {
   }
 
   async findBarberByUserId(userId) {
-    return await Barber.findOne({ userId }).populate("userId", "name email phone");
+    return await Barber.findOne({ userId }).populate(
+      "userId",
+      "name email phone"
+    );
   }
 
   async createBarber(barberData) {
@@ -103,10 +106,25 @@ class DataStore {
       .sort({ date: -1, time: -1 });
   }
 
+  async findAppointmentsByBarberIdOrUserId(barberId, userId) {
+    // Find appointments where barberId matches either the barber document ID or the user ID
+    return await Appointment.find({
+      $or: [{ barberId: barberId }, { barberId: userId }],
+    })
+      .populate("customerId", "name email phone")
+      .populate({
+        path: "barberId",
+        select: "name specialization profileImage services",
+        // Handle case where barberId might be a User, not a Barber
+        model: "Barber",
+      })
+      .sort({ date: -1, time: -1 });
+  }
+
   async findAppointmentsByDateAndBarber(date, barberId) {
     const startOfDay = new Date(date);
     startOfDay.setHours(0, 0, 0, 0);
-    
+
     const endOfDay = new Date(date);
     endOfDay.setHours(23, 59, 59, 999);
 
@@ -114,8 +132,8 @@ class DataStore {
       barberId,
       date: {
         $gte: startOfDay,
-        $lte: endOfDay
-      }
+        $lte: endOfDay,
+      },
     });
   }
 
@@ -168,7 +186,7 @@ class DataStore {
     await newAppointment.save();
     return newAppointment.populate([
       { path: "customerId", select: "name email phone" },
-      { path: "barberId", select: "name email phone" }
+      { path: "barberId", select: "name email phone" },
     ]);
   }
 
